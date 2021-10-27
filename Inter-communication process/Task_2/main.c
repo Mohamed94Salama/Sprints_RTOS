@@ -77,7 +77,7 @@
 
 TaskHandle_t Task1Handler = NULL;
 TaskHandle_t Task2Handler = NULL;
-
+SemaphoreHandle_t xMutex;
 
 /*
  * Configure the processor for use with the Keil demo board.  This is very
@@ -93,29 +93,44 @@ pinState_t button_state;
 void Task_1( void * pvParameters )
 {	
 	uint8_t i;
+	uint32_t j;
     for( ;; )
     {
+			if(xSemaphoreTake(xMutex,(TickType_t)10)==pdTRUE)
+			{
 			for(i=0;i<10;i++)
 			{
+
 				vSerialPutString((const signed char * const)"AAAA", 5);
+
 			}
+			xSemaphoreGive(xMutex);
+		}
+			
 			vTaskDelay(100);
     }
 }
 
 void Task_2( void * pvParameters )
 {
-	uint8_t i;
-	uint32_t j;
+	uint8_t i2;
+	uint32_t j2;
     for( ;; )
     {
-			for(i=0;i<10;i++)
+			if(xSemaphoreTake(xMutex,(TickType_t)10)==pdTRUE)
 			{
+			for(i2=0;i2<10;i2++)
+			{
+
 				vSerialPutString((const signed char * const)"BBBB", 5);
-			}
-			for(j=0;j<100000;j++)
+			for(j2=0;j2<100000;j2++)
 			{
+			}				
 			}
+
+			xSemaphoreGive(xMutex);
+		}
+			
 			vTaskDelay(500);
 		}		
     
@@ -134,6 +149,8 @@ int main( void )
 	/* Setup the hardware for use with the Keil demo board. */
 	prvSetupHardware();
   
+	xMutex = xSemaphoreCreateMutex();
+	
 	xSerialPortInitMinimal(mainCOM_TEST_BAUD_RATE);
 
     /* Create Tasks here */
